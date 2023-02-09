@@ -1,0 +1,780 @@
+2023-02-09 11:38:04,478 - mmcls - INFO - Environment info:
+------------------------------------------------------------
+sys.platform: linux
+Python: 3.8.16 (default, Jan 17 2023, 23:13:24) [GCC 11.2.0]
+CUDA available: True
+GPU 0: NVIDIA GeForce RTX 3090
+CUDA_HOME: /data/apps/cuda/11.1
+NVCC: Cuda compilation tools, release 11.1, V11.1.74
+GCC: gcc (GCC) 7.3.0
+PyTorch: 1.9.1+cu111
+PyTorch compiling details: PyTorch built with:
+  - GCC 7.3
+  - C++ Version: 201402
+  - Intel(R) oneAPI Math Kernel Library Version 2021.4-Product Build 20210904 for Intel(R) 64 architecture applications
+  - Intel(R) MKL-DNN v2.1.2 (Git Hash 98be7e8afa711dc9b66c8ff3504129cb82013cdb)
+  - OpenMP 201511 (a.k.a. OpenMP 4.5)
+  - NNPACK is enabled
+  - CPU capability usage: AVX2
+  - CUDA Runtime 11.1
+  - NVCC architecture flags: -gencode;arch=compute_37,code=sm_37;-gencode;arch=compute_50,code=sm_50;-gencode;arch=compute_60,code=sm_60;-gencode;arch=compute_70,code=sm_70;-gencode;arch=compute_75,code=sm_75;-gencode;arch=compute_80,code=sm_80;-gencode;arch=compute_86,code=sm_86
+  - CuDNN 8.0.5
+  - Magma 2.5.2
+  - Build settings: BLAS_INFO=mkl, BUILD_TYPE=Release, CUDA_VERSION=11.1, CUDNN_VERSION=8.0.5, CXX_COMPILER=/opt/rh/devtoolset-7/root/usr/bin/c++, CXX_FLAGS= -Wno-deprecated -fvisibility-inlines-hidden -DUSE_PTHREADPOOL -fopenmp -DNDEBUG -DUSE_KINETO -DUSE_FBGEMM -DUSE_QNNPACK -DUSE_PYTORCH_QNNPACK -DUSE_XNNPACK -DSYMBOLICATE_MOBILE_DEBUG_HANDLE -O2 -fPIC -Wno-narrowing -Wall -Wextra -Werror=return-type -Wno-missing-field-initializers -Wno-type-limits -Wno-array-bounds -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused-result -Wno-unused-local-typedefs -Wno-strict-overflow -Wno-strict-aliasing -Wno-error=deprecated-declarations -Wno-stringop-overflow -Wno-psabi -Wno-error=pedantic -Wno-error=redundant-decls -Wno-error=old-style-cast -fdiagnostics-color=always -faligned-new -Wno-unused-but-set-variable -Wno-maybe-uninitialized -fno-math-errno -fno-trapping-math -Werror=format -Wno-stringop-overflow, LAPACK_INFO=mkl, PERF_WITH_AVX=1, PERF_WITH_AVX2=1, PERF_WITH_AVX512=1, TORCH_VERSION=1.9.1, USE_CUDA=ON, USE_CUDNN=ON, USE_EXCEPTION_PTR=1, USE_GFLAGS=OFF, USE_GLOG=OFF, USE_MKL=ON, USE_MKLDNN=ON, USE_MPI=OFF, USE_NCCL=ON, USE_NNPACK=ON, USE_OPENMP=ON, 
+
+TorchVision: 0.10.1+cu111
+OpenCV: 4.7.0
+MMCV: 1.7.0
+MMCV Compiler: GCC 7.3
+MMCV CUDA Compiler: 11.1
+MMClassification: 0.25.0+3d4f80d
+------------------------------------------------------------
+
+2023-02-09 11:38:04,479 - mmcls - INFO - Distributed training: False
+2023-02-09 11:38:05,397 - mmcls - INFO - Config:
+model = dict(
+    type='ImageClassifier',
+    backbone=dict(
+        type='ResNet',
+        depth=50,
+        num_stages=4,
+        out_indices=(3, ),
+        style='pytorch',
+        frozen_stages=2,
+        init_cfg=dict(
+            type='Pretrained',
+            checkpoint=
+            '/HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth',
+            prefix='backbone')),
+    neck=dict(type='GlobalAveragePooling'),
+    head=dict(
+        type='LinearClsHead',
+        num_classes=10,
+        in_channels=2048,
+        loss=dict(type='CrossEntropyLoss', loss_weight=1.0),
+        topk=(1, 5)))
+dataset_type = 'CIFAR10'
+img_norm_cfg = dict(
+    mean=[125.307, 122.961, 113.8575],
+    std=[51.5865, 50.847, 51.255],
+    to_rgb=False)
+train_pipeline = [
+    dict(type='RandomCrop', size=32, padding=4),
+    dict(type='RandomFlip', flip_prob=0.5, direction='horizontal'),
+    dict(type='Resize', size=224),
+    dict(
+        type='Normalize',
+        mean=[125.307, 122.961, 113.8575],
+        std=[51.5865, 50.847, 51.255],
+        to_rgb=False),
+    dict(type='ImageToTensor', keys=['img']),
+    dict(type='ToTensor', keys=['gt_label']),
+    dict(type='Collect', keys=['img', 'gt_label'])
+]
+test_pipeline = [
+    dict(type='Resize', size=224),
+    dict(
+        type='Normalize',
+        mean=[125.307, 122.961, 113.8575],
+        std=[51.5865, 50.847, 51.255],
+        to_rgb=False),
+    dict(type='ImageToTensor', keys=['img']),
+    dict(type='Collect', keys=['img'])
+]
+data = dict(
+    samples_per_gpu=128,
+    workers_per_gpu=2,
+    train=dict(
+        type='CIFAR10',
+        data_prefix='data/cifar10',
+        pipeline=[
+            dict(type='RandomCrop', size=32, padding=4),
+            dict(type='RandomFlip', flip_prob=0.5, direction='horizontal'),
+            dict(type='Resize', size=224),
+            dict(
+                type='Normalize',
+                mean=[125.307, 122.961, 113.8575],
+                std=[51.5865, 50.847, 51.255],
+                to_rgb=False),
+            dict(type='ImageToTensor', keys=['img']),
+            dict(type='ToTensor', keys=['gt_label']),
+            dict(type='Collect', keys=['img', 'gt_label'])
+        ]),
+    val=dict(
+        type='CIFAR10',
+        data_prefix='data/cifar10',
+        pipeline=[
+            dict(type='Resize', size=224),
+            dict(
+                type='Normalize',
+                mean=[125.307, 122.961, 113.8575],
+                std=[51.5865, 50.847, 51.255],
+                to_rgb=False),
+            dict(type='ImageToTensor', keys=['img']),
+            dict(type='Collect', keys=['img'])
+        ],
+        test_mode=True),
+    test=dict(
+        type='CIFAR10',
+        data_prefix='data/cifar10',
+        pipeline=[
+            dict(type='Resize', size=224),
+            dict(
+                type='Normalize',
+                mean=[125.307, 122.961, 113.8575],
+                std=[51.5865, 50.847, 51.255],
+                to_rgb=False),
+            dict(type='ImageToTensor', keys=['img']),
+            dict(type='Collect', keys=['img'])
+        ],
+        test_mode=True))
+checkpoint_config = dict(interval=1)
+log_config = dict(interval=100, hooks=[dict(type='TextLoggerHook')])
+dist_params = dict(backend='nccl')
+log_level = 'INFO'
+load_from = None
+resume_from = None
+workflow = [('train', 1)]
+optimizer = dict(type='SGD', lr=0.01, momentum=0.9, weight_decay=0.0001)
+optimizer_config = dict(grad_clip=None)
+lr_config = dict(policy='step', step=[15])
+runner = dict(type='EpochBasedRunner', max_epochs=20)
+work_dir = 'work/resnet50-cifar10-ep20'
+gpu_ids = [0]
+
+2023-02-09 11:38:05,398 - mmcls - INFO - Set random seed to 517625223, deterministic: False
+2023-02-09 11:38:05,541 - mmcls - INFO - initialize ResNet with init_cfg {'type': 'Pretrained', 'checkpoint': '/HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth', 'prefix': 'backbone'}
+2023-02-09 11:38:05,690 - mmcls - INFO - initialize LinearClsHead with init_cfg {'type': 'Normal', 'layer': 'Linear', 'std': 0.01}
+Name of parameter - Initialization information
+
+backbone.conv1.weight - torch.Size([64, 3, 7, 7]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.bn1.weight - torch.Size([64]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.bn1.bias - torch.Size([64]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer1.0.conv1.weight - torch.Size([64, 64, 1, 1]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer1.0.bn1.weight - torch.Size([64]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer1.0.bn1.bias - torch.Size([64]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer1.0.conv2.weight - torch.Size([64, 64, 3, 3]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer1.0.bn2.weight - torch.Size([64]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer1.0.bn2.bias - torch.Size([64]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer1.0.conv3.weight - torch.Size([256, 64, 1, 1]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer1.0.bn3.weight - torch.Size([256]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer1.0.bn3.bias - torch.Size([256]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer1.0.downsample.0.weight - torch.Size([256, 64, 1, 1]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer1.0.downsample.1.weight - torch.Size([256]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer1.0.downsample.1.bias - torch.Size([256]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer1.1.conv1.weight - torch.Size([64, 256, 1, 1]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer1.1.bn1.weight - torch.Size([64]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer1.1.bn1.bias - torch.Size([64]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer1.1.conv2.weight - torch.Size([64, 64, 3, 3]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer1.1.bn2.weight - torch.Size([64]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer1.1.bn2.bias - torch.Size([64]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer1.1.conv3.weight - torch.Size([256, 64, 1, 1]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer1.1.bn3.weight - torch.Size([256]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer1.1.bn3.bias - torch.Size([256]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer1.2.conv1.weight - torch.Size([64, 256, 1, 1]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer1.2.bn1.weight - torch.Size([64]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer1.2.bn1.bias - torch.Size([64]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer1.2.conv2.weight - torch.Size([64, 64, 3, 3]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer1.2.bn2.weight - torch.Size([64]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer1.2.bn2.bias - torch.Size([64]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer1.2.conv3.weight - torch.Size([256, 64, 1, 1]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer1.2.bn3.weight - torch.Size([256]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer1.2.bn3.bias - torch.Size([256]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.0.conv1.weight - torch.Size([128, 256, 1, 1]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.0.bn1.weight - torch.Size([128]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.0.bn1.bias - torch.Size([128]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.0.conv2.weight - torch.Size([128, 128, 3, 3]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.0.bn2.weight - torch.Size([128]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.0.bn2.bias - torch.Size([128]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.0.conv3.weight - torch.Size([512, 128, 1, 1]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.0.bn3.weight - torch.Size([512]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.0.bn3.bias - torch.Size([512]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.0.downsample.0.weight - torch.Size([512, 256, 1, 1]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.0.downsample.1.weight - torch.Size([512]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.0.downsample.1.bias - torch.Size([512]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.1.conv1.weight - torch.Size([128, 512, 1, 1]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.1.bn1.weight - torch.Size([128]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.1.bn1.bias - torch.Size([128]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.1.conv2.weight - torch.Size([128, 128, 3, 3]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.1.bn2.weight - torch.Size([128]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.1.bn2.bias - torch.Size([128]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.1.conv3.weight - torch.Size([512, 128, 1, 1]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.1.bn3.weight - torch.Size([512]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.1.bn3.bias - torch.Size([512]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.2.conv1.weight - torch.Size([128, 512, 1, 1]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.2.bn1.weight - torch.Size([128]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.2.bn1.bias - torch.Size([128]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.2.conv2.weight - torch.Size([128, 128, 3, 3]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.2.bn2.weight - torch.Size([128]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.2.bn2.bias - torch.Size([128]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.2.conv3.weight - torch.Size([512, 128, 1, 1]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.2.bn3.weight - torch.Size([512]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.2.bn3.bias - torch.Size([512]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.3.conv1.weight - torch.Size([128, 512, 1, 1]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.3.bn1.weight - torch.Size([128]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.3.bn1.bias - torch.Size([128]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.3.conv2.weight - torch.Size([128, 128, 3, 3]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.3.bn2.weight - torch.Size([128]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.3.bn2.bias - torch.Size([128]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.3.conv3.weight - torch.Size([512, 128, 1, 1]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.3.bn3.weight - torch.Size([512]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer2.3.bn3.bias - torch.Size([512]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.0.conv1.weight - torch.Size([256, 512, 1, 1]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.0.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.0.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.0.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.0.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.0.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.0.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.0.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.0.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.0.downsample.0.weight - torch.Size([1024, 512, 1, 1]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.0.downsample.1.weight - torch.Size([1024]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.0.downsample.1.bias - torch.Size([1024]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.1.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.1.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.1.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.1.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.1.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.1.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.1.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.1.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.1.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.2.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.2.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.2.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.2.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.2.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.2.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.2.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.2.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.2.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.3.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.3.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.3.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.3.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.3.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.3.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.3.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.3.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.3.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.4.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.4.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.4.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.4.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.4.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.4.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.4.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.4.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.4.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.5.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.5.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.5.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.5.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.5.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.5.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.5.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.5.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer3.5.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer4.0.conv1.weight - torch.Size([512, 1024, 1, 1]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer4.0.bn1.weight - torch.Size([512]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer4.0.bn1.bias - torch.Size([512]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer4.0.conv2.weight - torch.Size([512, 512, 3, 3]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer4.0.bn2.weight - torch.Size([512]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer4.0.bn2.bias - torch.Size([512]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer4.0.conv3.weight - torch.Size([2048, 512, 1, 1]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer4.0.bn3.weight - torch.Size([2048]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer4.0.bn3.bias - torch.Size([2048]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer4.0.downsample.0.weight - torch.Size([2048, 1024, 1, 1]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer4.0.downsample.1.weight - torch.Size([2048]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer4.0.downsample.1.bias - torch.Size([2048]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer4.1.conv1.weight - torch.Size([512, 2048, 1, 1]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer4.1.bn1.weight - torch.Size([512]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer4.1.bn1.bias - torch.Size([512]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer4.1.conv2.weight - torch.Size([512, 512, 3, 3]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer4.1.bn2.weight - torch.Size([512]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer4.1.bn2.bias - torch.Size([512]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer4.1.conv3.weight - torch.Size([2048, 512, 1, 1]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer4.1.bn3.weight - torch.Size([2048]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer4.1.bn3.bias - torch.Size([2048]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer4.2.conv1.weight - torch.Size([512, 2048, 1, 1]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer4.2.bn1.weight - torch.Size([512]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer4.2.bn1.bias - torch.Size([512]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer4.2.conv2.weight - torch.Size([512, 512, 3, 3]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer4.2.bn2.weight - torch.Size([512]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer4.2.bn2.bias - torch.Size([512]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer4.2.conv3.weight - torch.Size([2048, 512, 1, 1]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer4.2.bn3.weight - torch.Size([2048]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+backbone.layer4.2.bn3.bias - torch.Size([2048]): 
+PretrainedInit: load from /HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth 
+
+head.fc.weight - torch.Size([10, 2048]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+head.fc.bias - torch.Size([10]): 
+NormalInit: mean=0, std=0.01, bias=0 
+2023-02-09 11:38:12,357 - mmcls - INFO - Start running, host: scz0atj@g0014, work_dir: /data/run01/scz0atj/mmcls-cifar10/mmclassification/work/resnet50-cifar10-ep20
+2023-02-09 11:38:12,358 - mmcls - INFO - Hooks will be executed in the following order:
+before_run:
+(VERY_HIGH   ) StepLrUpdaterHook                  
+(NORMAL      ) CheckpointHook                     
+(LOW         ) EvalHook                           
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_train_epoch:
+(VERY_HIGH   ) StepLrUpdaterHook                  
+(LOW         ) IterTimerHook                      
+(LOW         ) EvalHook                           
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_train_iter:
+(VERY_HIGH   ) StepLrUpdaterHook                  
+(LOW         ) IterTimerHook                      
+(LOW         ) EvalHook                           
+ -------------------- 
+after_train_iter:
+(ABOVE_NORMAL) OptimizerHook                      
+(NORMAL      ) CheckpointHook                     
+(LOW         ) IterTimerHook                      
+(LOW         ) EvalHook                           
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+after_train_epoch:
+(NORMAL      ) CheckpointHook                     
+(LOW         ) EvalHook                           
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_val_epoch:
+(LOW         ) IterTimerHook                      
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_val_iter:
+(LOW         ) IterTimerHook                      
+ -------------------- 
+after_val_iter:
+(LOW         ) IterTimerHook                      
+ -------------------- 
+after_val_epoch:
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+after_run:
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+2023-02-09 11:38:12,358 - mmcls - INFO - workflow: [('train', 1)], max: 20 epochs
+2023-02-09 11:38:12,358 - mmcls - INFO - Checkpoints will be saved to /data/run01/scz0atj/mmcls-cifar10/mmclassification/work/resnet50-cifar10-ep20 by HardDiskBackend.
+2023-02-09 11:38:30,140 - mmcls - INFO - Epoch [1][100/391]	lr: 1.000e-02, eta: 0:22:48, time: 0.177, data_time: 0.026, memory: 3136, loss: 0.5043
+2023-02-09 11:38:45,209 - mmcls - INFO - Epoch [1][200/391]	lr: 1.000e-02, eta: 0:20:49, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.2459
+2023-02-09 11:39:00,257 - mmcls - INFO - Epoch [1][300/391]	lr: 1.000e-02, eta: 0:19:59, time: 0.150, data_time: 0.001, memory: 3136, loss: 0.2034
+2023-02-09 11:39:13,899 - mmcls - INFO - Saving checkpoint at 1 epochs
+2023-02-09 11:39:21,891 - mmcls - INFO - Epoch(val) [1][79]	accuracy_top-1: 93.5800, accuracy_top-5: 99.9200
+2023-02-09 11:39:39,149 - mmcls - INFO - Epoch [2][100/391]	lr: 1.000e-02, eta: 0:16:10, time: 0.172, data_time: 0.022, memory: 3136, loss: 0.1166
+2023-02-09 11:39:54,231 - mmcls - INFO - Epoch [2][200/391]	lr: 1.000e-02, eta: 0:16:20, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.1199
+2023-02-09 11:40:09,337 - mmcls - INFO - Epoch [2][300/391]	lr: 1.000e-02, eta: 0:16:22, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.1147
+2023-02-09 11:40:22,999 - mmcls - INFO - Saving checkpoint at 2 epochs
+2023-02-09 11:40:30,604 - mmcls - INFO - Epoch(val) [2][79]	accuracy_top-1: 94.5200, accuracy_top-5: 99.9400
+2023-02-09 11:40:47,872 - mmcls - INFO - Epoch [3][100/391]	lr: 1.000e-02, eta: 0:14:44, time: 0.172, data_time: 0.022, memory: 3136, loss: 0.0776
+2023-02-09 11:41:02,957 - mmcls - INFO - Epoch [3][200/391]	lr: 1.000e-02, eta: 0:14:48, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.0772
+2023-02-09 11:41:18,044 - mmcls - INFO - Epoch [3][300/391]	lr: 1.000e-02, eta: 0:14:48, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.0898
+2023-02-09 11:41:31,685 - mmcls - INFO - Saving checkpoint at 3 epochs
+2023-02-09 11:41:39,318 - mmcls - INFO - Epoch(val) [3][79]	accuracy_top-1: 94.4000, accuracy_top-5: 99.9500
+2023-02-09 11:41:56,612 - mmcls - INFO - Epoch [4][100/391]	lr: 1.000e-02, eta: 0:13:42, time: 0.172, data_time: 0.022, memory: 3136, loss: 0.0612
+2023-02-09 11:42:11,686 - mmcls - INFO - Epoch [4][200/391]	lr: 1.000e-02, eta: 0:13:41, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.0595
+2023-02-09 11:42:26,772 - mmcls - INFO - Epoch [4][300/391]	lr: 1.000e-02, eta: 0:13:38, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.0652
+2023-02-09 11:42:40,417 - mmcls - INFO - Saving checkpoint at 4 epochs
+2023-02-09 11:42:48,047 - mmcls - INFO - Epoch(val) [4][79]	accuracy_top-1: 94.7000, accuracy_top-5: 99.9000
+2023-02-09 11:43:05,245 - mmcls - INFO - Epoch [5][100/391]	lr: 1.000e-02, eta: 0:12:46, time: 0.171, data_time: 0.021, memory: 3136, loss: 0.0453
+2023-02-09 11:43:20,337 - mmcls - INFO - Epoch [5][200/391]	lr: 1.000e-02, eta: 0:12:43, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.0458
+2023-02-09 11:43:35,432 - mmcls - INFO - Epoch [5][300/391]	lr: 1.000e-02, eta: 0:12:38, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.0498
+2023-02-09 11:43:49,088 - mmcls - INFO - Saving checkpoint at 5 epochs
+2023-02-09 11:43:56,686 - mmcls - INFO - Epoch(val) [5][79]	accuracy_top-1: 94.4200, accuracy_top-5: 99.9500
+2023-02-09 11:44:13,971 - mmcls - INFO - Epoch [6][100/391]	lr: 1.000e-02, eta: 0:11:54, time: 0.172, data_time: 0.022, memory: 3136, loss: 0.0364
+2023-02-09 11:44:29,061 - mmcls - INFO - Epoch [6][200/391]	lr: 1.000e-02, eta: 0:11:48, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.0316
+2023-02-09 11:44:44,152 - mmcls - INFO - Epoch [6][300/391]	lr: 1.000e-02, eta: 0:11:42, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.0385
+2023-02-09 11:44:57,797 - mmcls - INFO - Saving checkpoint at 6 epochs
+2023-02-09 11:45:05,467 - mmcls - INFO - Epoch(val) [6][79]	accuracy_top-1: 94.8500, accuracy_top-5: 99.8900
+2023-02-09 11:45:22,661 - mmcls - INFO - Epoch [7][100/391]	lr: 1.000e-02, eta: 0:11:03, time: 0.171, data_time: 0.021, memory: 3136, loss: 0.0290
+2023-02-09 11:45:37,743 - mmcls - INFO - Epoch [7][200/391]	lr: 1.000e-02, eta: 0:10:56, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.0325
+2023-02-09 11:45:52,830 - mmcls - INFO - Epoch [7][300/391]	lr: 1.000e-02, eta: 0:10:49, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.0328
+2023-02-09 11:46:06,486 - mmcls - INFO - Saving checkpoint at 7 epochs
+2023-02-09 11:46:14,150 - mmcls - INFO - Epoch(val) [7][79]	accuracy_top-1: 95.2400, accuracy_top-5: 99.8900
+2023-02-09 11:46:31,440 - mmcls - INFO - Epoch [8][100/391]	lr: 1.000e-02, eta: 0:10:13, time: 0.172, data_time: 0.022, memory: 3136, loss: 0.0249
+2023-02-09 11:46:46,528 - mmcls - INFO - Epoch [8][200/391]	lr: 1.000e-02, eta: 0:10:05, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.0254
+2023-02-09 11:47:01,613 - mmcls - INFO - Epoch [8][300/391]	lr: 1.000e-02, eta: 0:09:57, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.0336
+2023-02-09 11:47:15,258 - mmcls - INFO - Saving checkpoint at 8 epochs
+2023-02-09 11:47:22,867 - mmcls - INFO - Epoch(val) [8][79]	accuracy_top-1: 95.7000, accuracy_top-5: 99.9200
+2023-02-09 11:47:40,070 - mmcls - INFO - Epoch [9][100/391]	lr: 1.000e-02, eta: 0:09:24, time: 0.171, data_time: 0.022, memory: 3136, loss: 0.0247
+2023-02-09 11:47:55,152 - mmcls - INFO - Epoch [9][200/391]	lr: 1.000e-02, eta: 0:09:15, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.0245
+2023-02-09 11:48:10,233 - mmcls - INFO - Epoch [9][300/391]	lr: 1.000e-02, eta: 0:09:06, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.0258
+2023-02-09 11:48:23,878 - mmcls - INFO - Saving checkpoint at 9 epochs
+2023-02-09 11:48:32,289 - mmcls - INFO - Epoch(val) [9][79]	accuracy_top-1: 95.9600, accuracy_top-5: 99.9300
+2023-02-09 11:48:49,492 - mmcls - INFO - Epoch [10][100/391]	lr: 1.000e-02, eta: 0:08:35, time: 0.171, data_time: 0.021, memory: 3136, loss: 0.0193
+2023-02-09 11:49:04,571 - mmcls - INFO - Epoch [10][200/391]	lr: 1.000e-02, eta: 0:08:26, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.0187
+2023-02-09 11:49:19,639 - mmcls - INFO - Epoch [10][300/391]	lr: 1.000e-02, eta: 0:08:16, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.0206
+2023-02-09 11:49:33,273 - mmcls - INFO - Saving checkpoint at 10 epochs
+2023-02-09 11:49:40,910 - mmcls - INFO - Epoch(val) [10][79]	accuracy_top-1: 95.0800, accuracy_top-5: 99.9100
+2023-02-09 11:49:58,122 - mmcls - INFO - Epoch [11][100/391]	lr: 1.000e-02, eta: 0:07:46, time: 0.172, data_time: 0.021, memory: 3136, loss: 0.0184
+2023-02-09 11:50:13,203 - mmcls - INFO - Epoch [11][200/391]	lr: 1.000e-02, eta: 0:07:37, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.0147
+2023-02-09 11:50:28,293 - mmcls - INFO - Epoch [11][300/391]	lr: 1.000e-02, eta: 0:07:27, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.0207
+2023-02-09 11:50:41,936 - mmcls - INFO - Saving checkpoint at 11 epochs
+2023-02-09 11:50:49,526 - mmcls - INFO - Epoch(val) [11][79]	accuracy_top-1: 95.7700, accuracy_top-5: 99.9300
+2023-02-09 11:51:06,738 - mmcls - INFO - Epoch [12][100/391]	lr: 1.000e-02, eta: 0:06:58, time: 0.172, data_time: 0.021, memory: 3136, loss: 0.0165
+2023-02-09 11:51:21,838 - mmcls - INFO - Epoch [12][200/391]	lr: 1.000e-02, eta: 0:06:48, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.0159
+2023-02-09 11:51:36,930 - mmcls - INFO - Epoch [12][300/391]	lr: 1.000e-02, eta: 0:06:37, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.0226
+2023-02-09 11:51:50,583 - mmcls - INFO - Saving checkpoint at 12 epochs
+2023-02-09 11:51:58,252 - mmcls - INFO - Epoch(val) [12][79]	accuracy_top-1: 95.4500, accuracy_top-5: 99.9400
+2023-02-09 11:52:15,454 - mmcls - INFO - Epoch [13][100/391]	lr: 1.000e-02, eta: 0:06:10, time: 0.171, data_time: 0.021, memory: 3136, loss: 0.0133
+2023-02-09 11:52:30,536 - mmcls - INFO - Epoch [13][200/391]	lr: 1.000e-02, eta: 0:05:59, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.0145
+2023-02-09 11:52:45,634 - mmcls - INFO - Epoch [13][300/391]	lr: 1.000e-02, eta: 0:05:49, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.0127
+2023-02-09 11:52:59,284 - mmcls - INFO - Saving checkpoint at 13 epochs
+2023-02-09 11:53:06,871 - mmcls - INFO - Epoch(val) [13][79]	accuracy_top-1: 95.7400, accuracy_top-5: 99.9300
+2023-02-09 11:53:24,134 - mmcls - INFO - Epoch [14][100/391]	lr: 1.000e-02, eta: 0:05:22, time: 0.172, data_time: 0.022, memory: 3136, loss: 0.0153
+2023-02-09 11:53:39,228 - mmcls - INFO - Epoch [14][200/391]	lr: 1.000e-02, eta: 0:05:11, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.0157
+2023-02-09 11:53:54,327 - mmcls - INFO - Epoch [14][300/391]	lr: 1.000e-02, eta: 0:05:00, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.0123
+2023-02-09 11:54:07,977 - mmcls - INFO - Saving checkpoint at 14 epochs
+2023-02-09 11:54:15,652 - mmcls - INFO - Epoch(val) [14][79]	accuracy_top-1: 95.5200, accuracy_top-5: 99.9200
+2023-02-09 11:54:32,932 - mmcls - INFO - Epoch [15][100/391]	lr: 1.000e-02, eta: 0:04:34, time: 0.172, data_time: 0.022, memory: 3136, loss: 0.0137
+2023-02-09 11:54:48,023 - mmcls - INFO - Epoch [15][200/391]	lr: 1.000e-02, eta: 0:04:23, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.0113
+2023-02-09 11:55:03,129 - mmcls - INFO - Epoch [15][300/391]	lr: 1.000e-02, eta: 0:04:11, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.0121
+2023-02-09 11:55:16,790 - mmcls - INFO - Saving checkpoint at 15 epochs
+2023-02-09 11:55:24,462 - mmcls - INFO - Epoch(val) [15][79]	accuracy_top-1: 95.9600, accuracy_top-5: 99.9500
+2023-02-09 11:55:41,712 - mmcls - INFO - Epoch [16][100/391]	lr: 1.000e-03, eta: 0:03:46, time: 0.172, data_time: 0.022, memory: 3136, loss: 0.0071
+2023-02-09 11:55:56,792 - mmcls - INFO - Epoch [16][200/391]	lr: 1.000e-03, eta: 0:03:35, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.0063
+2023-02-09 11:56:11,880 - mmcls - INFO - Epoch [16][300/391]	lr: 1.000e-03, eta: 0:03:23, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.0051
+2023-02-09 11:56:25,525 - mmcls - INFO - Saving checkpoint at 16 epochs
+2023-02-09 11:56:33,192 - mmcls - INFO - Epoch(val) [16][79]	accuracy_top-1: 96.5000, accuracy_top-5: 99.9700
+2023-02-09 11:56:50,455 - mmcls - INFO - Epoch [17][100/391]	lr: 1.000e-03, eta: 0:02:58, time: 0.172, data_time: 0.022, memory: 3136, loss: 0.0039
+2023-02-09 11:57:05,547 - mmcls - INFO - Epoch [17][200/391]	lr: 1.000e-03, eta: 0:02:47, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.0040
+2023-02-09 11:57:20,642 - mmcls - INFO - Epoch [17][300/391]	lr: 1.000e-03, eta: 0:02:35, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.0041
+2023-02-09 11:57:34,307 - mmcls - INFO - Saving checkpoint at 17 epochs
+2023-02-09 11:57:41,923 - mmcls - INFO - Epoch(val) [17][79]	accuracy_top-1: 96.5900, accuracy_top-5: 99.9700
+2023-02-09 11:57:59,147 - mmcls - INFO - Epoch [18][100/391]	lr: 1.000e-03, eta: 0:02:10, time: 0.172, data_time: 0.022, memory: 3136, loss: 0.0023
+2023-02-09 11:58:14,231 - mmcls - INFO - Epoch [18][200/391]	lr: 1.000e-03, eta: 0:01:59, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.0031
+2023-02-09 11:58:29,310 - mmcls - INFO - Epoch [18][300/391]	lr: 1.000e-03, eta: 0:01:47, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.0027
+2023-02-09 11:58:42,949 - mmcls - INFO - Saving checkpoint at 18 epochs
+2023-02-09 11:58:50,599 - mmcls - INFO - Epoch(val) [18][79]	accuracy_top-1: 96.6300, accuracy_top-5: 99.9700
+2023-02-09 11:59:07,865 - mmcls - INFO - Epoch [19][100/391]	lr: 1.000e-03, eta: 0:01:23, time: 0.172, data_time: 0.022, memory: 3136, loss: 0.0024
+2023-02-09 11:59:22,956 - mmcls - INFO - Epoch [19][200/391]	lr: 1.000e-03, eta: 0:01:11, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.0031
+2023-02-09 11:59:38,061 - mmcls - INFO - Epoch [19][300/391]	lr: 1.000e-03, eta: 0:00:59, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.0023
+2023-02-09 11:59:51,716 - mmcls - INFO - Saving checkpoint at 19 epochs
+2023-02-09 11:59:59,324 - mmcls - INFO - Epoch(val) [19][79]	accuracy_top-1: 96.6400, accuracy_top-5: 99.9800
+2023-02-09 12:00:16,585 - mmcls - INFO - Epoch [20][100/391]	lr: 1.000e-03, eta: 0:00:35, time: 0.172, data_time: 0.022, memory: 3136, loss: 0.0032
+2023-02-09 12:00:31,675 - mmcls - INFO - Epoch [20][200/391]	lr: 1.000e-03, eta: 0:00:23, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.0031
+2023-02-09 12:00:46,765 - mmcls - INFO - Epoch [20][300/391]	lr: 1.000e-03, eta: 0:00:11, time: 0.151, data_time: 0.001, memory: 3136, loss: 0.0018
+2023-02-09 12:01:00,480 - mmcls - INFO - Saving checkpoint at 20 epochs
+2023-02-09 12:01:08,122 - mmcls - INFO - Epoch(val) [20][79]	accuracy_top-1: 96.7000, accuracy_top-5: 99.9700

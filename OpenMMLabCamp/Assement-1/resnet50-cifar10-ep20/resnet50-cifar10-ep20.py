@@ -1,19 +1,24 @@
 model = dict(
     type='ImageClassifier',
     backbone=dict(
-        type='ResNet_CIFAR',
+        type='ResNet',
         depth=50,
         num_stages=4,
         out_indices=(3, ),
-        style='pytorch'),
+        style='pytorch',
+        frozen_stages=2,
+        init_cfg=dict(
+            type='Pretrained',
+            checkpoint=
+            '/HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth',
+            prefix='backbone')),
     neck=dict(type='GlobalAveragePooling'),
     head=dict(
-        type='MultiLabelLinearClsHead',
+        type='LinearClsHead',
         num_classes=10,
         in_channels=2048,
-        loss=dict(type='CrossEntropyLoss', loss_weight=1.0, use_soft=True)),
-    train_cfg=dict(
-        augments=dict(type='BatchMixup', alpha=1.0, num_classes=10, prob=1.0)))
+        loss=dict(type='CrossEntropyLoss', loss_weight=1.0),
+        topk=(1, 5)))
 dataset_type = 'CIFAR10'
 img_norm_cfg = dict(
     mean=[125.307, 122.961, 113.8575],
@@ -22,6 +27,7 @@ img_norm_cfg = dict(
 train_pipeline = [
     dict(type='RandomCrop', size=32, padding=4),
     dict(type='RandomFlip', flip_prob=0.5, direction='horizontal'),
+    dict(type='Resize', size=224),
     dict(
         type='Normalize',
         mean=[125.307, 122.961, 113.8575],
@@ -32,6 +38,7 @@ train_pipeline = [
     dict(type='Collect', keys=['img', 'gt_label'])
 ]
 test_pipeline = [
+    dict(type='Resize', size=224),
     dict(
         type='Normalize',
         mean=[125.307, 122.961, 113.8575],
@@ -42,13 +49,14 @@ test_pipeline = [
 ]
 data = dict(
     samples_per_gpu=128,
-    workers_per_gpu=8,
+    workers_per_gpu=2,
     train=dict(
         type='CIFAR10',
-        data_prefix='data/cifar-10-batches-py',
+        data_prefix='data/cifar10',
         pipeline=[
             dict(type='RandomCrop', size=32, padding=4),
             dict(type='RandomFlip', flip_prob=0.5, direction='horizontal'),
+            dict(type='Resize', size=224),
             dict(
                 type='Normalize',
                 mean=[125.307, 122.961, 113.8575],
@@ -60,8 +68,9 @@ data = dict(
         ]),
     val=dict(
         type='CIFAR10',
-        data_prefix='data/public/cifar-10-batches-py',
+        data_prefix='data/cifar10',
         pipeline=[
+            dict(type='Resize', size=224),
             dict(
                 type='Normalize',
                 mean=[125.307, 122.961, 113.8575],
@@ -73,8 +82,9 @@ data = dict(
         test_mode=True),
     test=dict(
         type='CIFAR10',
-        data_prefix='data/public/cifar-10-batches-py',
+        data_prefix='data/cifar10',
         pipeline=[
+            dict(type='Resize', size=224),
             dict(
                 type='Normalize',
                 mean=[125.307, 122.961, 113.8575],
@@ -88,13 +98,12 @@ checkpoint_config = dict(interval=1)
 log_config = dict(interval=100, hooks=[dict(type='TextLoggerHook')])
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-load_from = '/HOME/scz0atj/run/mmcls-cifar10/mmclassification/checkpoints/resnet50_8xb32_in1k_20210831-ea4938fc.pth'
+load_from = None
 resume_from = None
 workflow = [('train', 1)]
-evaluation = dict(metric_options=dict(topk=(1, )))
-optimizer = dict(type='SGD', lr=0.001, momentum=0.9, weight_decay=0.0001)
+optimizer = dict(type='SGD', lr=0.01, momentum=0.9, weight_decay=0.0001)
 optimizer_config = dict(grad_clip=None)
-lr_config = dict(policy='step', step=[1])
-runner = dict(type='EpochBasedRunner', max_epochs=10)
-work_dir = 'work/resnet50-bs128-e10'
+lr_config = dict(policy='step', step=[15])
+runner = dict(type='EpochBasedRunner', max_epochs=20)
+work_dir = 'work/resnet50-cifar10-ep20'
 gpu_ids = [0]
